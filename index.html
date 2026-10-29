@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charity Water Game</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="is-loading">
+    <section id="loading-screen" class="loading-screen" aria-label="Loading game" aria-live="polite">
+        <div class="loading-card">
+            <img class="loading-logo" src="img/cw_logo_horizontal.png" alt="Charity: water">
+            <div class="loading-drop" aria-hidden="true">💧</div>
+            <p class="loading-title">Finding a clean water path...</p>
+            <div class="loading-progress" role="progressbar" aria-label="Game loading">
+                <span></span>
+            </div>
+            <div class="did-you-know">
+                <h2>Did you know?</h2>
+                <p id="loading-fact">Clean water helps communities spend more time learning, working, and growing.</p>
+            </div>
+        </div>
+    </section>
+
+    <main class="game">
+        <div class="game-heading">
+            <div class="game-title">
+                <h1><img class="game-logo" src="img/cw_logo_horizontal.png" alt="Charity: water"></h1>
+                <p class="game-subtitle">The Hunt For Clean Water</p>
+            </div>
+            <section class="game-instructions" aria-labelledby="instructions-title">
+                <h2 id="instructions-title">How to play</h2>
+                <p>Search quickly for a clean water source to help the community. Each tile costs 1 point and will point you in the direction of the clean water source. Red spaces are polluted water sources and will make it hard to navigate.</p>
+            </section>
+        </div>
+
+        <section class="game-info" aria-label="Game information">
+            <p>Score: <span id="score">0</span></p>
+            <p>Par: <span id="par">4</span></p>
+            <button id="reset-game" type="button">Start over</button>
+        </section>
+
+        <div id="game-grid" class="game-grid" aria-label="10 by 10 game grid"></div>
+        <div id="direction-arrow" class="direction-arrow" aria-label="Direction to clean water" hidden>
+            <span></span>
+        </div>
+    </main>
+
+    <div id="win-modal" class="win-modal" role="dialog" aria-modal="true" aria-labelledby="win-title" hidden>
+        <div id="confetti" class="confetti" aria-hidden="true"></div>
+        <div class="win-card">
+            <h2 id="win-title">Clean water found!</h2>
+            <p>Your score: <span id="final-score">0</span></p>
+            <p id="result-message"></p>
+            <p>Would you like to search again?</p>
+            <button id="play-again" type="button">Search again</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
