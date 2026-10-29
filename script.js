@@ -1,5 +1,6 @@
 const gameGrid = document.querySelector('#game-grid');
 const scoreDisplay = document.querySelector('#score');
+const milestoneMessage = document.querySelector('#milestone-message');
 const directionArrow = document.querySelector('#direction-arrow span');
 const winModal = document.querySelector('#win-modal');
 const finalScore = document.querySelector('#final-score');
@@ -7,10 +8,28 @@ const resultMessage = document.querySelector('#result-message');
 const confetti = document.querySelector('#confetti');
 const playAgainButton = document.querySelector('#play-again');
 const resetGameButton = document.querySelector('#reset-game');
+const difficultyButtons = document.querySelectorAll('.difficulty-button');
 const loadingScreen = document.querySelector('#loading-screen');
 const loadingFact = document.querySelector('#loading-fact');
 let score = 0;
 const par = 4;
+const milestoneMessages = [
+	'The villagers are hopeful. Keep searching for clean water.',
+	'The villagers are waiting patiently for clean water.',
+	'The villagers are starting to worry.',
+	'The water search is taking longer than expected.',
+	'The villagers are getting concerned about every extra day taken.',
+	'The villagers are growing anxious. Clean water is still out there.',
+	'The community is counting on you to find clean water soon.',
+	'The villagers are worried that the wait will continue.',
+	'The community urgently needs a clean water source.',
+	'The villagers are very worried. Find clean water now!'
+];
+const difficultyStorageKey = 'charityWaterDifficulty';
+const difficultyNames = ['easy', 'medium', 'hard'];
+const savedDifficulty = localStorage.getItem(difficultyStorageKey);
+const currentDifficulty = difficultyNames.includes(savedDifficulty) ? savedDifficulty : 'easy';
+const badTileCount = currentDifficulty === 'hard' ? 40 : 25;
 const goalCellNumber = Math.floor(Math.random() * 100);
 const badCellNumbers = new Set();
 const confettiColors = ['#003366', '#77a8bb', '#ffc907', '#bf6c46', '#fed8c1', '#cbccd1'];
@@ -30,6 +49,53 @@ const loadingFacts = [
 
 const randomFactNumber = Math.floor(Math.random() * loadingFacts.length);
 loadingFact.textContent = loadingFacts[randomFactNumber];
+const waterDropAudio = new Audio('audio/855981__etheraudio__sine-wave-droplet-sound-made-using-brkedit.wav');
+const pollutedWaterAudio = new Audio('audio/16771__dobroide__20060307swamp.wav');
+const cleanWaterAudio = new Audio('audio/545823__benj500__water-splosh.mp3');
+let currentSound;
+
+difficultyButtons.forEach(function (difficultyButton) {
+	const isCurrentDifficulty = difficultyButton.dataset.difficulty === currentDifficulty;
+
+	difficultyButton.classList.toggle('is-selected', isCurrentDifficulty);
+	difficultyButton.setAttribute('aria-pressed', isCurrentDifficulty);
+	difficultyButton.addEventListener('click', function () {
+		localStorage.setItem(difficultyStorageKey, difficultyButton.dataset.difficulty);
+		window.location.reload();
+	});
+});
+
+function playAudio(audio) {
+	if (currentSound) {
+		currentSound.pause();
+		currentSound.currentTime = 0;
+	}
+
+	currentSound = audio.cloneNode();
+
+	currentSound.volume = 0.5;
+	currentSound.play().catch(function () {});
+}
+
+function playWaterDropSound() {
+	playAudio(waterDropAudio);
+}
+
+function playPollutedWaterSound() {
+	playAudio(pollutedWaterAudio);
+}
+
+function playCleanWaterSound() {
+	playAudio(cleanWaterAudio);
+}
+
+function updateMilestoneMessage() {
+	if (score > 0 && score <= milestoneMessages.length) {
+		milestoneMessage.textContent = milestoneMessages[score - 1];
+	} else if (score > milestoneMessages.length) {
+		milestoneMessage.textContent = 'The villagers are running out of hope. Find clean water now!';
+	}
+}
 
 function hideLoadingScreen() {
 	loadingScreen.classList.add('is-hidden');
@@ -44,7 +110,7 @@ window.addEventListener('load', function () {
 	window.setTimeout(hideLoadingScreen, 5000);
 });
 
-while (badCellNumbers.size < 25) {
+while (badCellNumbers.size < badTileCount) {
 	const badCellNumber = Math.floor(Math.random() * 100);
 
 	if (badCellNumber !== goalCellNumber) {
@@ -110,10 +176,17 @@ for (let cellNumber = 0; cellNumber < 100; cellNumber++) {
 	cell.addEventListener('click', function () {
 		score++;
 		scoreDisplay.textContent = score;
+		updateMilestoneMessage();
 		cell.disabled = true;
 		cell.classList.add('flipped');
 
 		if (badCellNumbers.has(cellNumber)) {
+			playPollutedWaterSound();
+			if (currentDifficulty !== 'easy') {
+				score++;
+				scoreDisplay.textContent = score;
+				updateMilestoneMessage();
+			}
 			cell.classList.add('bad');
 			directionArrow.parentElement.hidden = true;
 			cell.setAttribute('aria-label', 'Dead end');
@@ -123,6 +196,7 @@ for (let cellNumber = 0; cellNumber < 100; cellNumber++) {
 		pointArrowAtGoal(cellNumber);
 
 		if (cellNumber === goalCellNumber) {
+			playCleanWaterSound();
 			cell.classList.add('goal');
 			cell.setAttribute('aria-label', 'Clean water found');
 			const waterCan = document.createElement('img');
@@ -132,7 +206,10 @@ for (let cellNumber = 0; cellNumber < 100; cellNumber++) {
 			waterCan.setAttribute('aria-hidden', 'true');
 			cell.appendChild(waterCan);
 			showWinScreen();
+			return;
 		}
+
+		playWaterDropSound();
 	});
 	gameGrid.appendChild(cell);
 }
